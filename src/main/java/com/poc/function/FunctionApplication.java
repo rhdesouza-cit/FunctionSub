@@ -106,8 +106,7 @@ public class FunctionApplication implements ApplicationContextInitializer<Generi
                 // Use acknowledgeCallable().futureCall to asynchronously perform this operation.
                 subscriber.acknowledgeCallable().call(acknowledgeRequest);
             }
-            log.info(pullResponse.getReceivedMessagesList());
-            log.info("Messages received: " + ackIds.size());
+            log.info("Messages received: " + pullResponse.getReceivedMessagesList());
         }
     }
 
