@@ -1,0 +1,25 @@
+server:
+    port: 8081
+spring:
+    cloud:
+        gcp:
+            project-id: localstack
+            pubsub:
+                emulator-host: localhost:8085
+    devtools:
+        restart:
+            enabled: true
+
+feign:
+    client:
+        config:
+            default:
+                connectTimeout: 5000
+                readTimeout: 5000
+                loggerLevel: full
+
+br:
+    com:
+        bullla:
+            business-client:
+                url: localhost:8080
