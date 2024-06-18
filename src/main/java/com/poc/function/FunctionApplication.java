@@ -20,8 +20,12 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.function.context.FunctionRegistration;
+import org.springframework.cloud.function.context.catalog.FunctionTypeUtils;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.GenericApplicationContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +34,7 @@ import java.util.function.Consumer;
 
 @SpringBootApplication
 @EnableFeignClients
-public class FunctionApplication {
+public class FunctionApplication implements ApplicationContextInitializer<GenericApplicationContext> {
 
     @Value("${spring.cloud.gcp.project-id}")
     private String projectId;
@@ -42,6 +46,14 @@ public class FunctionApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(FunctionApplication.class, args);
+    }
+
+
+    @Override
+    public void initialize(GenericApplicationContext context) {
+        context.registerBean("demo", FunctionRegistration.class,
+            () -> new FunctionRegistration<>(consumer())
+                .type(FunctionTypeUtils.discoverFunctionTypeFromClass(String.class)));
     }
 
     @Bean
@@ -72,6 +84,7 @@ public class FunctionApplication {
             PullRequest pullRequest = PullRequest.newBuilder()
                 .setMaxMessages(numOfMessages)
                 .setSubscription(subscriptionName)
+                //.setReturnImmediately(true)
                 .build();
 
             // Use pullCallable().futureCall to asynchronously perform this operation.
@@ -84,14 +97,15 @@ public class FunctionApplication {
                 ackIds.add(message.getAckId());
             }
 
-            // Acknowledge received messages.
-            AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest.newBuilder()
-                .setSubscription(subscriptionName)
-                .addAllAckIds(ackIds)
-                .build();
-
-            // Use acknowledgeCallable().futureCall to asynchronously perform this operation.
-            subscriber.acknowledgeCallable().call(acknowledgeRequest);
+            if (!ackIds.isEmpty()) {
+                // Acknowledge received messages.
+                AcknowledgeRequest acknowledgeRequest = AcknowledgeRequest.newBuilder()
+                    .setSubscription(subscriptionName)
+                    .addAllAckIds(ackIds)
+                    .build();
+                // Use acknowledgeCallable().futureCall to asynchronously perform this operation.
+                subscriber.acknowledgeCallable().call(acknowledgeRequest);
+            }
             log.info(pullResponse.getReceivedMessagesList());
             log.info("Messages received: " + ackIds.size());
         }
