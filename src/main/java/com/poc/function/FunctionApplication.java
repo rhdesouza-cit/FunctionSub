@@ -13,6 +13,7 @@ import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
+import com.poc.function.businessclient.gateway.BusinessClientGateway;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.apache.commons.logging.Log;
@@ -43,6 +44,12 @@ public class FunctionApplication implements ApplicationContextInitializer<Generi
     private String emulatorHost;
 
     private static final Log log = LogFactory.getLog(FunctionApplication.class);
+
+    private final BusinessClientGateway businessClientGateway;
+
+    FunctionApplication(BusinessClientGateway businessClientGateway) {
+        this.businessClientGateway = businessClientGateway;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(FunctionApplication.class, args);
@@ -84,7 +91,7 @@ public class FunctionApplication implements ApplicationContextInitializer<Generi
             PullRequest pullRequest = PullRequest.newBuilder()
                 .setMaxMessages(numOfMessages)
                 .setSubscription(subscriptionName)
-                //.setReturnImmediately(true)
+                .setReturnImmediately(true)
                 .build();
 
             // Use pullCallable().futureCall to asynchronously perform this operation.
@@ -92,8 +99,7 @@ public class FunctionApplication implements ApplicationContextInitializer<Generi
 
             List<String> ackIds = new ArrayList<>();
             for (ReceivedMessage message : pullResponse.getReceivedMessagesList()) {
-                // Handle received message
-                // ...
+                businessClientGateway.postMessagesBusinessClient(message.getMessage().getData().toStringUtf8());
                 ackIds.add(message.getAckId());
             }
 
@@ -107,6 +113,7 @@ public class FunctionApplication implements ApplicationContextInitializer<Generi
                 subscriber.acknowledgeCallable().call(acknowledgeRequest);
             }
             log.info("Messages received: " + pullResponse.getReceivedMessagesList());
+            log.info("Total messages: " + pullResponse.getReceivedMessagesList().size());
         }
     }
 

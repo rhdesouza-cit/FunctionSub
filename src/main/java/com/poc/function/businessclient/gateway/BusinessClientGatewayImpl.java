@@ -25,4 +25,9 @@ public class BusinessClientGatewayImpl implements BusinessClientGateway {
         }
     }
 
+    @Override
+    public void postMessagesBusinessClient(final String data) {
+        client.postMessagesBusinessClient(data);
+    }
+
 }
