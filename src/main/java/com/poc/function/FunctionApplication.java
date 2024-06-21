@@ -13,7 +13,7 @@ import com.google.pubsub.v1.ProjectSubscriptionName;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
-import com.poc.function.businessclient.gateway.BusinessClientGateway;
+import com.poc.function.external.gateway.ExternalClientGateway;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.apache.commons.logging.Log;
@@ -45,10 +45,10 @@ public class FunctionApplication implements ApplicationContextInitializer<Generi
 
     private static final Log log = LogFactory.getLog(FunctionApplication.class);
 
-    private final BusinessClientGateway businessClientGateway;
+    private final ExternalClientGateway externalClientGateway;
 
-    FunctionApplication(BusinessClientGateway businessClientGateway) {
-        this.businessClientGateway = businessClientGateway;
+    FunctionApplication(ExternalClientGateway externalClientGateway) {
+        this.externalClientGateway = externalClientGateway;
     }
 
     public static void main(String[] args) {
@@ -99,7 +99,7 @@ public class FunctionApplication implements ApplicationContextInitializer<Generi
 
             List<String> ackIds = new ArrayList<>();
             for (ReceivedMessage message : pullResponse.getReceivedMessagesList()) {
-                businessClientGateway.postMessagesBusinessClient(message.getMessage().getData().toStringUtf8());
+                externalClientGateway.postMessage(message.getMessage().getData().toStringUtf8());
                 ackIds.add(message.getAckId());
             }
 

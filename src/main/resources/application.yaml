@@ -20,6 +20,5 @@ feign:
 
 br:
     com:
-        bullla:
-            business-client:
-                url: ${BULLLA_BUSINESS_CLIENT_MS_URL}
+        external:
+            url: ${EXTERNAL_CLIENT_MS_URL}
